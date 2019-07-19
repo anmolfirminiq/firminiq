@@ -1,0 +1,606 @@
+Description: 'This template deploys a VPC, with a pair of public and private subnets
+  spread
+
+  across two Availability Zones. It deploys an Internet Gateway, with a default
+
+  route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ),
+
+  and default routes for them in the private subnets.'
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+  VpcCIDR:
+    Default: 10.192.0.0/16
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+  PrivateSubnet1CIDR:
+    Default: 10.192.14.0/24
+    Description: Please enter the IP range (CIDR notation) for the private subnet
+      in the first Availability Zone
+    Type: String
+  PrivateSubnet2CIDR:
+    Default: 10.192.15.0/24
+    Description: Please enter the IP range (CIDR notation) for the private subnet
+      in the second Availability Zone
+    Type: String
+  PrivateSubnet3CIDR:
+    Default: 10.192.16.0/24
+    Description: Please enter the IP range (CIDR notation) for the private subnet
+      in the first Availability Zone
+    Type: String
+  PrivateSubnet4CIDR:
+    Default: 10.192.17.0/24
+    Description: Please enter the IP range (CIDR notation) for the private subnet
+      in the first Availability Zone
+    Type: String
+  PrivateSubnet5CIDR:
+    Default: 10.192.18.0/24
+    Description: Please enter the IP range (CIDR notation) for the private subnet
+      in the first Availability Zone
+    Type: String
+  PublicSubnet1CIDR:
+    Default: 10.192.10.0/24
+    Description: Please enter the IP range (CIDR notation) for the public subnet in
+      the first Availability Zone
+    Type: String
+  PublicSubnet2CIDR:
+    Default: 10.192.11.0/24
+    Description: Please enter the IP range (CIDR notation) for the public subnet in
+      the second Availability Zone
+    Type: String
+  KeyPair:
+    Type: String
+    Default: key-sydney2
+    Description: Enter name of pre-generated KeyPair
+Mappings: 
+  RegionMap: 
+    eu-west-1: 
+      HVM64: ami-047bb4163c506cd98
+    eu-west-2: 
+      HVM64: ami-f976839e
+    eu-west-3:
+      HVM64: ami-0ebc281c20e89ba4b
+    eu-central-1: 
+      HVM64: ami-0233214e13e500f77
+    us-west-2:
+      HVM64: ami-0b59bfac6be064b78
+    us-west-1:
+      HVM64: ami-0bdb828fd58c52235
+    us-east-2:
+      HVM64: ami-a0cfeed8
+    us-east-1:
+      HVM64: ami-0ff8a91507f77f867
+    ap-south-1:
+      HVM64: ami-0912f71e06545ad88
+    ap-northeast-2:
+      HVM64: ami-0be3e6f84d3b968cd
+    ap-northeast-1:
+      HVM64: ami-06cd52961ce9f0d85
+    ap-southeast-2:
+      HVM64: ami-075caa3491def750b
+    ap-southeast-1:
+      HVM64: ami-08569b978cc4dfa10
+    ca-central-1:
+      HVM64: ami-0b18956f
+    sa-east-1:
+      HVM64: ami-07b14488da8ea02a0
+Resources:
+  VPC:
+    Properties:
+      CidrBlock:
+        Ref: VpcCIDR
+      Tags:
+      - Key: Name
+        Value:
+          Ref: EnvironmentName
+    Type: AWS::EC2::VPC
+  InternetGateway:
+    Properties:
+      Tags:
+      - Key: Name
+        Value:
+          Ref: EnvironmentName
+    Type: AWS::EC2::InternetGateway
+  InternetGatewayAttachment:
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::VPCGatewayAttachment
+###Public Subnets
+  PublicSubnet1:
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock:
+        Ref: PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::Subnet
+  PublicSubnet2:
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock:
+        Ref: PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::Subnet
+###Private Subnets
+  PrivateSubnet1:
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::Subnet
+  PrivateSubnet2:
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::Subnet
+  PrivateSubnet3:
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::Subnet
+  PrivateSubnet4:
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet4CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::Subnet
+  PrivateSubnet5:
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PrivateSubnet5CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::Subnet
+###Public Subnet Routing
+  PublicRouteTable:
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Public Routes
+      VpcId:   !Ref VPC
+    Type: AWS::EC2::RouteTable
+  DefaultPublicRoute:
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+      RouteTableId:
+        Ref: PublicRouteTable
+    Type: AWS::EC2::Route
+  PublicSubnet1RouteTableAssociation:
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnet1
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  PublicSubnet2RouteTableAssociation:
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnet2
+    Type: AWS::EC2::SubnetRouteTableAssociation
+###Private Subnet  Routing
+  PrivateRouteTable1:
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Routes (AZ1)
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::RouteTable
+  DefaultPrivateRoute1:
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+      RouteTableId: !Ref PrivateRouteTable1
+    Type: AWS::EC2::Route
+  PrivateSubnet1RouteTableAssociation:
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  PrivateRouteTable2:
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Routes (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::RouteTable
+  DefaultPrivateRoute2:
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+      RouteTableId: !Ref PrivateRouteTable2
+    Type: AWS::EC2::Route
+  PrivateSubnet2RouteTableAssociation:
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: !Ref PrivateSubnet2
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  PrivateRouteTable3:
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Routes (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::RouteTable
+  DefaultPrivateRoute3:
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+      RouteTableId: !Ref PrivateRouteTable3
+    Type: AWS::EC2::Route
+  PrivateSubnet3RouteTableAssociation:
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      SubnetId: !Ref PrivateSubnet3
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  PrivateRouteTable4:
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Routes (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::RouteTable
+  DefaultPrivateRoute4:
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+      RouteTableId: !Ref PrivateRouteTable4
+    Type: AWS::EC2::Route
+  PrivateSubnet4RouteTableAssociation:
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable4
+      SubnetId: !Ref PrivateSubnet4
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  PrivateRouteTable5:
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvironmentName} Private Routes (AZ2)
+      VpcId: !Ref VPC
+    Type: AWS::EC2::RouteTable
+  DefaultPrivateRoute5:
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+      RouteTableId: !Ref PrivateRouteTable5
+    Type: AWS::EC2::Route
+  PrivateSubnet5RouteTableAssociation:
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable5
+      SubnetId: !Ref PrivateSubnet5
+    Type: AWS::EC2::SubnetRouteTableAssociation
+###NAT GATEWAYS
+  NatGateway1EIP:
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+    Type: AWS::EC2::EIP
+  NatGateway1:
+    Properties:
+      AllocationId: !GetAtt NatGateway1EIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+    Type: AWS::EC2::NatGateway
+  NatGateway2EIP:
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+    Type: AWS::EC2::EIP
+  NatGateway2:
+    Properties:
+      AllocationId: !GetAtt NatGateway2EIP.AllocationId
+      SubnetId: !Ref PublicSubnet2
+    Type: AWS::EC2::NatGateway
+#########Security Groups###################
+###DB Security Group
+  DBEC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for DB EC2 to allow port 80 from API
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref APIEC2SG
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.191.10.0/24
+      Tags:
+        - Key: Name 
+          Value: DBEC2-SG
+      VpcId: !Ref VPC
+###API  security groups
+  APIALBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for Application Load Balancer to expose HTTP 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name 
+          Value: APIALB-SG
+      VpcId: !Ref VPC
+  APIEC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for EC2 to allow SSH from Bastion and port 80 from UI instance
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref APIALBSG
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref UIEC2SG
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.191.10.0/24
+      Tags:
+        - Key: Name 
+          Value: APIEC2-SG
+      VpcId: !Ref VPC
+###UI SecurityGroups
+  UIALBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for Application Load Balancer to expose HTTP 80
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name 
+          Value: UIALB-SG
+      VpcId: !Ref VPC
+  UIEC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security Group for EC2 to allow SSH from Bastion
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref UIALBSG
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.191.10.0/24
+      Tags:
+        - Key: Name 
+          Value: UIEC2-SG
+      VpcId: !Ref VPC
+######Application Load Balancer
+##API ALB
+  APIALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: APIALB
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref APIALBSG
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      Type: application
+
+  APIALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref APIALBTG
+      LoadBalancerArn: !Ref APIALB
+      Port: 80
+      Protocol: HTTP
+
+  APIALBTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+      Name: AppTargets1
+      Port: 80
+      Protocol: HTTP
+      Targets:
+      - Id: !Ref EC2API1
+        Port: 80
+      - Id: !Ref EC2API2
+        Port: 80
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name 
+          Value: APIALB-TG
+####UI ALB
+  UIALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: UIALB
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref UIALBSG
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      Type: application
+
+  UIALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref UIALBTG
+      LoadBalancerArn: !Ref UIALB
+      Port: 80
+      Protocol: HTTP
+
+  UIALBTG:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: '200'
+      Name: AppTargets2
+      Port: 80
+      Protocol: HTTP
+      Targets:
+      - Id: !Ref EC2UI1
+        Port: 80
+      - Id: !Ref EC2UI2
+        Port: 80
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name 
+          Value: UIALB-TG
+######Instances
+###API Instances
+  EC2API1:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: t2.nano
+      KeyName: !Ref KeyPair
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnet1
+          GroupSet: 
+            - !Ref APIEC2SG
+      Tags: 
+        - Key: Name 
+          Value: EC2-API1
+  EC2API2:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: t2.small
+      KeyName: !Ref KeyPair
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnet2
+          GroupSet: 
+            - !Ref APIEC2SG
+      Tags: 
+        - Key: Name 
+          Value: EC2-API2
+#####UI Instances
+  EC2UI1:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: t2.nano
+      KeyName: !Ref KeyPair
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnet3
+          GroupSet: 
+            - !Ref UIEC2SG
+      Tags: 
+        - Key: Name 
+          Value: EC2-UI1
+  EC2UI2:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: t2.small
+      KeyName: !Ref KeyPair
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnet4
+          GroupSet: 
+            - !Ref UIEC2SG
+      Tags: 
+        - Key: Name 
+          Value: EC2-UI2
+ ###########DB Instance
+  EC2DB:
+    Type: AWS::EC2::Instance
+    Properties: 
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      ImageId: !FindInMap
+        - RegionMap
+        - !Ref 'AWS::Region'
+        - HVM64
+      InstanceType: t2.nano
+      KeyName: !Ref KeyPair
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
+          SubnetId: !Ref PrivateSubnet5
+          GroupSet: 
+            - !Ref DBEC2SG
+      Tags: 
+        - Key: Name 
+          Value: EC2-DB
+ 
